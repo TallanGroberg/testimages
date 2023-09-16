@@ -1,48 +1,49 @@
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter, UnidentifiedImageError
 import os
 
 def alter_image(image_path, output_folder):
-    print(f"Processing: {image_path}")
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    
-    # Open an image
-    img = Image.open(image_path)
-    
-    # Extract the filename without extension to use for output filenames
+        
+    try:
+        img = Image.open(image_path)
+    except UnidentifiedImageError:
+        print(f"Cannot identify the image at {image_path}. Skipping...")
+        return
+
     filename = os.path.basename(image_path).split('.')[0]
-    
-    # 1. Convert to grayscale
-    grayscale = img.convert('L')
-    grayscale.save(os.path.join(output_folder, f'{filename}_grayscale.png'))
 
-    # 2. Rotate the image by 45 degrees
-    rotated = img.rotate(45)
-    rotated.save(os.path.join(output_folder, f'{filename}_rotated.png'))
+    # Convert to different color models and save
+    for color_model in ['L', 'P', 'RGB', 'RGBA']:
+        try:
+            converted = img.convert(color_model)
+            converted.save(os.path.join(output_folder, f'{filename}_{color_model}.png'))
+        except Exception as e:
+            print(f"Error while converting to {color_model}: {e}")
 
-    # 3. Flip the image horizontally
-    flip_horizontal = img.transpose(Image.FLIP_LEFT_RIGHT)
-    flip_horizontal.save(os.path.join(output_folder, f'{filename}_flip_horizontal.png'))
+    # Extreme dimensions
+    img.resize((1, 1)).save(os.path.join(output_folder, f'{filename}_1x1.png'))
+    img.resize((3000, 3000)).save(os.path.join(output_folder, f'{filename}_3000x3000.png'))
 
-    # 4. Flip the image vertically
-    flip_vertical = img.transpose(Image.FLIP_TOP_BOTTOM)
-    flip_vertical.save(os.path.join(output_folder, f'{filename}_flip_vertical.png'))
-
-    # 5. Resize the image
-    resized = img.resize((100, 100))
-    resized.save(os.path.join(output_folder, f'{filename}_resized.png'))
+    # Apply filters
+    for filter_name, filter_obj in [("CONTOUR", ImageFilter.CONTOUR), ("EMBOSS", ImageFilter.EMBOSS)]:
+        try:
+            filtered_img = img.filter(filter_obj)
+            filtered_img.save(os.path.join(output_folder, f'{filename}_{filter_name}.png'))
+        except ValueError:
+            # Convert to 'RGB' and then apply filter
+            rgb_img = img.convert('RGB')
+            filtered_img = rgb_img.filter(filter_obj)
+            filtered_img.save(os.path.join(output_folder, f'{filename}_{filter_name}_fromRGB.png'))
 
 if __name__ == "__main__":
-    # Input and output folder paths
-    input_folder_path = 'kodak'
-    output_folder_path = 'output_images_kodak'
+    input_folder_path = 'test_images'
+    output_folder_path = 'output_images'
     
-    # Check if the input folder exists
     if not os.path.exists(input_folder_path):
         print(f"The folder {input_folder_path} does not exist.")
         exit(1)
 
-    # Loop through all files in the input folder
     for filename in os.listdir(input_folder_path):
         if filename.lower().endswith('.png'):
             input_image_path = os.path.join(input_folder_path, filename)
