@@ -34,7 +34,7 @@ def alter_image(image_path, output_folder):
 
 if __name__ == "__main__":
     # Input and output folder paths
-    input_folder_path = 'test_images'
+    input_folder_path = 'best_tests'
     output_folder_path = 'output_images'
     
     # Check if the input folder exists
