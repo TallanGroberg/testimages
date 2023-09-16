@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "png_image_generator"
+version = "0.1.0"
+authors = ["Your Name <youremail@example.com>"]
+description = "A script to generate PNG images for testing libpng-1.6.34."
+readme = "README.md"
+python = "^3.6"
+
+[project.dependencies]
+Pillow = "^8.0"
+
+[project.optional-dependencies]
+
+[project.scripts]
